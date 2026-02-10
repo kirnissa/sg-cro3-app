@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SG → CrO₃ Calculator</title>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0d1117">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: white;
+      margin: 0;
+      padding: 18px;
+    }
+
+    .container {
+      max-width: 650px;
+      margin: auto;
+      background: #161b22;
+      padding: 20px;
+      border-radius: 16px;
+      border: 1px solid #30363d;
+      box-shadow: 0px 0px 25px rgba(0,0,0,0.6);
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin: 0 0 15px 0;
+    }
+
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      font-size: 17px;
+      border-radius: 12px;
+      border: none;
+      background: #0d1117;
+      color: white;
+      margin-top: 6px;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 12px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 14px;
+      background: #238636;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    .btnBlue {
+      background: #1d4ed8;
+    }
+
+    .btnBlue:hover {
+      background: #2563eb;
+    }
+
+    .btnRed {
+      background: #7f1d1d;
+    }
+
+    .btnRed:hover {
+      background: #991b1b;
+    }
+
+    .results {
+      margin-top: 18px;
+      padding: 14px;
+      background: #21262d;
+      border-radius: 14px;
+      border: 1px solid #30363d;
+    }
+
+    .results p {
+      margin: 10px 0;
+      font-size: 15px;
+    }
+
+    .results span {
+      color: #58a6ff;
+      font-weight: bold;
+    }
+
+    .statusBar {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 14px;
+      text-align: center;
+      font-weight: bold;
+      background: #14532d;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>🔬 SG → CrO₃ Calculator</h1>
+
+  <div class="statusBar">📱 Installable Offline Mobile App</div>
+
+  <label>Specific Gravity (SG)</label>
+  <input type="text" inputmode="decimal" pattern="[0-9.]*" id="sgInput" placeholder="Example: 1.165">
+
+  <label>Temperature °C (optional)</label>
+  <input type="text" inputmode="decimal" pattern="[0-9.]*" id="tempInput" placeholder="Example: 30">
+
+  <button id="btnCalc">Calculate</button>
+  <button class="btnBlue" id="btnCopy">Copy Results</button>
+  <button class="btnRed" id="btnReset">Reset</button>
+
+  <div class="results">
+    <p>Corrected SG (25°C): <span id="sgCorrected">---</span></p>
+    <p>CrO₃ (g/L): <span id="cro3GL">---</span></p>
+    <p>CrO₃ (oz/gal): <span id="cro3OzGal">---</span></p>
+    <p>Chromium Metal (g/L): <span id="crMetalGL">---</span></p>
+    <p>Chromium %: <span id="crPercent">---</span></p>
+  </div>
+</div>
+
+<script>
+  function correctSGTo25(sg, tempC) {
+    if (isNaN(tempC) || tempC === 25) return sg;
+    return sg + ((tempC - 25) * 0.0003);
+  }
+
+  function cro3FromSG(sg) {
+    return (sg - 1) / 0.00067;
+  }
+
+  function glToOzGal(gl) {
+    return gl / 7.489;
+  }
+
+  function setText(id, value) {
+    document.getElementById(id).textContent = value;
+  }
+
+  document.getElementById("btnCalc").addEventListener("click", function() {
+    let sgRaw = parseFloat(document.getElementById("sgInput").value);
+    let tempC = parseFloat(document.getElementById("tempInput").value);
+
+    if (isNaN(sgRaw) || sgRaw <= 1) {
+      alert("Enter a valid SG greater than 1.000");
+      return;
+    }
+
+    let sgCorrected = correctSGTo25(sgRaw, tempC);
+    let cro3GL = cro3FromSG(sgCorrected);
+    let cro3OzGal = glToOzGal(cro3GL);
+
+    let crMetalGL = cro3GL * 0.52;
+
+    // Shop formula: (CrO3 / SG) / 10
+    let crPercent = (cro3GL / sgCorrected) / 10;
+
+    setText("sgCorrected", sgCorrected.toFixed(4));
+    setText("cro3GL", cro3GL.toFixed(1));
+    setText("cro3OzGal", cro3OzGal.toFixed(2));
+    setText("crMetalGL", crMetalGL.toFixed(1));
+    setText("crPercent", crPercent.toFixed(2));
+  });
+
+  document.getElementById("btnReset").addEventListener("click", function() {
+    document.getElementById("sgInput").value = "";
+    document.getElementById("tempInput").value = "";
+
+    setText("sgCorrected", "---");
+    setText("cro3GL", "---");
+    setText("cro3OzGal", "---");
+    setText("crMetalGL", "---");
+    setText("crPercent", "---");
+  });
+
+  document.getElementById("btnCopy").addEventListener("click", function() {
+    let text =
+      "SG → CrO3 Results\n" +
+      "Corrected SG: " + document.getElementById("sgCorrected").textContent + "\n" +
+      "CrO3 (g/L): " + document.getElementById("cro3GL").textContent + "\n" +
+      "CrO3 (oz/gal): " + document.getElementById("cro3OzGal").textContent + "\n" +
+      "Cr Metal (g/L): " + document.getElementById("crMetalGL").textContent + "\n" +
+      "Chromium %: " + document.getElementById("crPercent").textContent;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Results copied to clipboard.");
+    });
+  });
+
+  // SERVICE WORKER REGISTER
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+  }
+</script>
+
+</body>
+</html>
